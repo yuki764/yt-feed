@@ -47,6 +47,11 @@ jobs:
           path: _bin    
           fail-on-cache-miss: true
 
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+
       - name: update feed
         env:
           FILE_PREFIX:     '${{ matrix.path }}/'
