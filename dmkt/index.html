@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+<style type="text/css">
+div#container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+a {
+    text-decoration: none;
+    width: 800px;
+    min-width: 800px;
+    margin: 16px;
+}
+a.no {
+    display: none;
+}
+div.video {
+    display: flex;
+    align-items: center;
+
+    padding: 16px;
+    border-radius: 24px;
+    border: 3px solid #888888;
+    background-color: #f8f8f8;
+}
+div.video:hover {
+    background-color: #ddddf8;
+}
+img.thumb {
+    height: 160px;
+    padding: 0 16px;
+}
+div.desc {
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+}
+div.ch {
+    align-self: start;
+    font-size: 0.8em;
+    padding: 4px 16px;
+    margin: 4px;
+    border-radius: 4px;
+    border: 1px solid #888888;
+}
+div.ch-aikatsu-academy {
+    color: #00467e;
+    background-color: #ffffff;
+}
+div.ch-himeno-mieru {
+    color: #ffffff;
+    background-color: #f198a8;
+}
+.ch-mamimu-meh {
+    color: #ffffff;
+    background-color: #5b6f98;
+}
+div.ch-wao-parin {
+    color: #00467e;
+    background-color: #fdd10b;
+}
+div.title {
+    flex-grow: 1;
+    margin: 4px;
+}
+div.ts {
+    font-size: 0.8em;
+    margin: 4px;
+}
+div.break {
+    flex-basis: 100%;
+    height: 0;
+}
+div.ch-uncheck {
+    color: #000000;
+    background-color: #aaaaaa;
+}
+</style>
+</head>
+<body>
+<header>
+</header>
+<div id="container"></div>
+
+<script type="text/javascript">
+
+function filterChannel(e) {
+    const videos = document.getElementsByClassName("link-"+e.name);
+    for (let v of videos) {
+        if (e.checked) {
+            v.classList.remove("no");
+            e.parentElement.classList.remove("ch-uncheck");
+        } else {
+            v.classList.add("no");
+            e.parentElement.classList.add("ch-uncheck");
+        }
+    }
+}
+
+let all = [];
+const channels = [
+    { handle: "aikatsu-academy", desc: "配信部" },
+    { handle: "himeno-mieru",    desc: "姫乃みえる" },
+    { handle: "mamimu-meh",      desc: "真未夢メエ" },
+    { handle: "wao-parin",       desc: "和央パリン" },
+];
+
+const container = document.getElementById('container')
+
+// add filters
+channels.forEach((v, k) => {
+    filter = document.createElement("div");
+    filter.classList.add("ch", "ch-"+v.handle);
+    cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.name = v.handle;
+    cb.id = "cb-"+v.handle;
+    cb.setAttribute("checked", "");
+    cb.setAttribute("onchange", "filterChannel(this);");
+    cb.style = 'display: none;'
+    l = document.createElement("label");
+    l.htmlFor = cb.id
+    l.innerText = v.desc + " @" + v.handle;
+
+    filter.appendChild(cb);
+    filter.appendChild(l);
+
+    container.appendChild(filter);
+});
+
+// add delimiter
+const delim = document.createElement("div");
+delim.classList.add("break");
+container.appendChild(delim);
+
+// load channel videos info from JSON
+const f = [];
+channels.forEach((v) => {
+    f.push(fetch("./"+v.handle+".json").then(resp => resp.json()));
+});
+
+Promise.all(f)
+    .then((data) => {
+        channels.forEach((v, k) => {
+            data[k].forEach((e) => {
+                e.ch = v.handle;
+                e.desc = v.desc;
+            });
+            console.log(data[k])
+        });
+
+        all = all.concat(...data);
+        const sorted = all.sort((a, b) => { return new Date(b.pubAt) - new Date(a.pubAt); });
+
+        sorted.forEach((e) => {
+            const link = document.createElement("a");
+            link.href = 'https://www.youtube.com/watch?v='+e.id;
+            link.target = '_blank';
+            link.classList.add("link-"+e.ch);
+
+            const item = document.createElement("div")
+            item.classList.add("video");
+
+            const thumb = document.createElement("img");
+            thumb.classList.add("thumb");
+            thumb.src = e.thumb;
+
+            const desc = document.createElement("div");
+            desc.classList.add("desc");
+
+            const ch = document.createElement("div");
+            ch.innerText = e.desc + " @" + e.ch;
+            ch.classList.add("ch");
+            ch.classList.add("ch-"+e.ch);
+
+            const title = document.createElement("div");
+            title.innerText = e.title;
+            title.classList.add("title");
+
+            const ts = document.createElement("div");
+            ts.innerText = new Date(e.pubAt).toLocaleString("ja-JP", { timezone: "JST"});
+            ts.classList.add("ts");
+
+            desc.appendChild(ch);
+            desc.appendChild(title);
+            desc.appendChild(ts);
+
+            item.appendChild(thumb);
+            item.appendChild(desc);
+
+            link.appendChild(item);
+
+            container.appendChild(link);
+        })
+    })
+
+</script>
+</body>
+</html>
