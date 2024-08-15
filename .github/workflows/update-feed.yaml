@@ -64,4 +64,6 @@ jobs:
 
       - name: update git tree if necessary
         run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@bot.neigepluie.net"
           git diff --stat --exit-code || ( echo "# do commit and push" && git commit -am "update feed in ${{ matrix.path }}" && git push origin main )
