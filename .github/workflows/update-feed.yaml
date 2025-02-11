@@ -40,7 +40,7 @@ jobs:
       matrix:
         include:
           - path: dmkt
-            handles: aikatsu-academy,himeno-mieru,mamimu-meh,wao-parin
+            handles: aikatsu-academy,himeno-mieru,mamimu-meh,wao-parin,rindou-taimu
     steps:
       - uses: actions/checkout@v4
 
